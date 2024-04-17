@@ -15,14 +15,13 @@ async def get_all_cites(db: AsyncSession) -> List[City]:
 
 async def get_city_by_id(db: AsyncSession, city_id: int) -> City:
     query = select(City).where(City.id == city_id)
-    res = await db.execute(query)
-    user_row = res.fetchone()
-    if not user_row:
+    result = await db.execute(query)
+    city = result.scalars().first()
+    if not city:
         raise HTTPException(
             status_code=404, detail=f"The city with id {city_id} does not exist"
         )
-    if user_row is not None:
-        return user_row[0]
+    return city
 
 
 async def create_city(db: AsyncSession, city_data: schemas.CityBaseCreate) -> dict:
