@@ -8,7 +8,6 @@ app.include_router(city_routers.router)
 app.include_router(temperature_routers.router)
 
 
-
 @app.get("/")
 def root():
     return {"message": "Hello World"}
