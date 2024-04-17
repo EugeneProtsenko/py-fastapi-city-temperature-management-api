@@ -1,18 +1,19 @@
 from fastapi import HTTPException
 from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing_extensions import List
 
 from city import schemas
 from city.models import City
 
 
-async def get_all_cites(db: AsyncSession):
+async def get_all_cites(db: AsyncSession) -> List[City]:
     query = select(City)
-    city_list = await db.execute(query)
-    return [city for city in city_list.scalars()]
+    cities = await db.scalars(query)
+    return cities.all()
 
 
-async def get_city_by_id(db: AsyncSession, city_id: int):
+async def get_city_by_id(db: AsyncSession, city_id: int) -> City:
     query = select(City).where(City.id == city_id)
     res = await db.execute(query)
     user_row = res.fetchone()
@@ -24,7 +25,7 @@ async def get_city_by_id(db: AsyncSession, city_id: int):
         return user_row[0]
 
 
-async def create_city(db: AsyncSession, city_data: schemas.CityBaseCreate):
+async def create_city(db: AsyncSession, city_data: schemas.CityBaseCreate) -> dict:
     query = insert(City).values(
         name=city_data.name,
         additional_info=city_data.additional_info,
@@ -35,7 +36,7 @@ async def create_city(db: AsyncSession, city_data: schemas.CityBaseCreate):
     return response
 
 
-async def update_city(db: AsyncSession, city_data: schemas.CityBase, city_id: int):
+async def update_city(db: AsyncSession, city_data: schemas.CityBase, city_id: int) -> City:
     db_city = await get_city_by_id(db, city_id=city_id)
     for attr, value in city_data.dict().items():
         setattr(db_city, attr, value)
@@ -45,7 +46,7 @@ async def update_city(db: AsyncSession, city_data: schemas.CityBase, city_id: in
     return db_city
 
 
-async def delete_city(db: AsyncSession, city_id: int):
+async def delete_city(db: AsyncSession, city_id: int) -> HTTPException:
     db_city = await get_city_by_id(db, city_id=city_id)
     await db.delete(db_city)
     await db.commit()
